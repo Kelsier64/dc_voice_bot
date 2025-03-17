@@ -111,9 +111,14 @@ async def speak(interaction: discord.Interaction, text: str):
     await interaction.response.send_message("音訊正在生成中，請稍候...")
     await speak_text_gpt_sovits(text)
     await interaction.followup.send("播放完成")
-    
 
+@bot.tree.command(name="download", description="下載生成的音訊文件")
+async def download(interaction: discord.Interaction):
+    if not os.path.exists("speech.wav"):
+        await interaction.response.send_message("音訊文件不存在")
+        return
 
+    await interaction.response.send_message(file=discord.File("speech.wav"))
 
 async def main():
     await bot.start(token)
