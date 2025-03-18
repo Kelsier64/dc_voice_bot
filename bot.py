@@ -20,7 +20,15 @@ if token is None:
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-keyword_dict = {"mvp": ["mvp"]}
+keyword_dict = {
+    "mvp": ["mvp"],
+    "啊哈哈哈":["ahhaha"],
+    "燒死你呀":["burn"],
+    "躺贏狗":["dog"],
+    "就解決你呀":["solve"],
+    "嗚呼哈哈":["uhu"],
+    "伊嗯嗯啊":["en"],
+}
 
 @bot.event
 async def on_ready():
@@ -50,13 +58,13 @@ async def speak_text(text: str):
     vc.play(discord.FFmpegPCMAudio(filename), after=lambda e: print(f"播放完成: {e}"))
 
 def split_string_by_keywords(text, keyword_dict):
-    # 提取關鍵字
-    keywords = [item for sublist in keyword_dict.values() for item in sublist]  # 展平字典的值
-    # 使用正則表達式找到所有關鍵字，並拆分字串
+    # Split by dictionary keys (the keywords in the text)
+    keywords = list(keyword_dict.keys())
     pattern = f"({'|'.join(map(re.escape, keywords))})"
-    result = re.split(pattern, text)
-    # 過濾掉空字串
-    return [keyword_dict.get(s, s) for s in result if s]
+    result = re.split(pattern, text, flags=re.UNICODE)
+    
+    # Map keywords to their replacement (first element of value list), keep non-keywords unchanged
+    return [keyword_dict.get(s, s) for s in result if s.strip()]
 
 
 @bot.tree.command(name="join", description="加入語音頻道")
@@ -81,7 +89,7 @@ async def leave(interaction: discord.Interaction):
     await bot.voice_clients[0].disconnect()
     await interaction.response.send_message("已離開語音頻道")
 
-async def gpt_sovits(text: str):
+async def gpt_sovits(text: str, out_file="speech.wav"):
     config_dict = {
         "default": {
             "device": "cuda",
@@ -105,7 +113,7 @@ async def gpt_sovits(text: str):
     }
 
     sr, audio_data = next(tts_pipeline.run(params))
-    sf.write("speech.wav", audio_data, sr)
+    sf.write(out_file, audio_data, sr)
 
 
 @bot.tree.command(name="speak", description="讓Bot說話")
@@ -127,7 +135,8 @@ async def speak(interaction: discord.Interaction, text: str):
             seg_audio = AudioSegment.from_file(wav_path, format="wav")
             combined += seg_audio
 
-    combined.export("speech.wav", format="wav")
+    combined.export("final.wav", format="wav")
+
     await interaction.followup.send("生成完成")
 
 
@@ -139,22 +148,19 @@ async def speak(interaction: discord.Interaction, text: str):
         vc = bot.voice_clients[0]
         while vc.is_playing():
             await asyncio.sleep(0.1)
-        vc.play(discord.FFmpegPCMAudio("speech.wav"), after=lambda e: print(f"播放完成: {e}"))
+        vc.play(discord.FFmpegPCMAudio("final.wav"), after=lambda e: print(f"播放完成: {e}"))
         return
 
 @bot.tree.command(name="download", description="下載生成的音訊文件")
 async def download(interaction: discord.Interaction):
-    if not os.path.exists("speech.wav"):
+    if not os.path.exists("final.wav"):
         await interaction.response.send_message("音訊文件不存在")
         return
 
-    await interaction.response.send_message(file=discord.File("speech.wav"))
-
-async def main():
-    await bot.start(token)
+    await interaction.response.send_message(file=discord.File("final.wav"))
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    bot.run(token)
 
 
 
