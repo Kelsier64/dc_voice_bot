@@ -40,31 +40,44 @@ async def gpt_sovits(text: str, out_file="speech.wav"):
     sr, audio_data = next(tts_pipeline.run(params))
     sf.write(out_file, audio_data, sr)
 
-async def main():
-    # 測試文字及關鍵字字典
-    text = "我爸得了mvp"
-    keyword_dict = {"mvp": ["mvp"]}  # 假設字典的值不影響拆分
-    output = split_string_by_keywords(text, keyword_dict)
-    print("拆分結果:", output)  # 例如：['我爸得了', 'mvp']
+# async def main():
+#     # 測試文字及關鍵字字典
+#     text = "啊哈哈哈沙士比亞我爸得了mvp"
+#     keyword_dict = {
+#     "mvp": ["mvp"],
+#     "啊哈哈哈":["ahhaha"],
+#     "沙士比亞":["kill"]
+# }
+#     output = split_string_by_keywords(text, keyword_dict)
+#     print("拆分結果:", output)  # 例如：['我爸得了', 'mvp']
 
-    combined = AudioSegment.empty()
+#     combined = AudioSegment.empty()
     
-    for idx, part in enumerate(output):
-        # 如果為字串則使用 gpt_sovits 生成 wav
-        if isinstance(part, str):
-            temp_wav = f"temp_{idx}.wav"
-            await gpt_sovits(part, out_file=temp_wav)
-            seg_audio = AudioSegment.from_file(temp_wav, format="wav")
-            combined += seg_audio
-        # 如果為列表則從 sounds 資料夾讀取對應的 wav
-        elif isinstance(part, list):
-            # 假設列表的第一個元素為檔名（不含副檔名）
-            wav_path = os.path.join("sounds", f"{part[0]}.wav")
-            seg_audio = AudioSegment.from_file(wav_path, format="wav")
-            combined += seg_audio
+#     for idx, part in enumerate(output):
+#         # 如果為字串則使用 gpt_sovits 生成 wav
+#         if isinstance(part, str):
+#             temp_wav = f"temp_{idx}.wav"
+#             await gpt_sovits(part, out_file=temp_wav)
+#             seg_audio = AudioSegment.from_file(temp_wav, format="wav")
+#             combined += seg_audio
+#         # 如果為列表則從 sounds 資料夾讀取對應的 wav
+#         elif isinstance(part, list):
+#             # 假設列表的第一個元素為檔名（不含副檔名）
+#             wav_path = os.path.join("sounds", f"{part[0]}.wav")
+#             seg_audio = AudioSegment.from_file(wav_path, format="wav")
+#             combined += seg_audio
 
-    combined.export("final.wav", format="wav")
-    print("合併後 wav 已輸出為 final.wav")
+#     combined.export("final.wav", format="wav")
+#     print("合併後 wav 已輸出為 final.wav")
 
-if __name__ == '__main__':
-    asyncio.run(main())
+# if __name__ == '__main__':
+#     asyncio.run(main())
+
+text = "啊哈哈哈沙士比亞我爸得了mvp"
+keyword_dict = {
+"mvp": ["mvp"],
+"啊哈哈哈":["ahhaha"],
+"沙士比亞":["kill"]
+}
+output = split_string_by_keywords(text, keyword_dict)
+print(output)
