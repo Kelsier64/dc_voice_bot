@@ -27,8 +27,22 @@ keyword_dict = {
     "躺贏狗":["dog"],
     "就解決你呀":["solve"],
     "嗚呼哈哈":["uhu"],
-    "伊嗯嗯啊":["en"],
+    "伊嗯嗯啊":["enn"],
 }
+
+config_dict = {
+    "default": {
+        "device": "cuda",
+        "is_half": True,
+        "t2s_weights_path": "models/gpt.ckpt",
+        "vits_weights_path": "models/sovits.pth",
+        "cnhuhbert_base_path": "models/chinese-hubert-base",
+        "bert_base_path": "models/chinese-roberta-wwm-ext-large",
+    }
+}
+
+tts_config = TTS_Config(config_dict)
+tts_pipeline = TTS(tts_config)
 
 @bot.event
 async def on_ready():
@@ -89,21 +103,7 @@ async def leave(interaction: discord.Interaction):
     await bot.voice_clients[0].disconnect()
     await interaction.response.send_message("已離開語音頻道")
 
-async def gpt_sovits(text: str, out_file="speech.wav"):
-    config_dict = {
-        "default": {
-            "device": "cuda",
-            "is_half": True,
-            "t2s_weights_path": "models/gpt.ckpt",
-            "vits_weights_path": "models/sovits.pth",
-            "cnhuhbert_base_path": "models/chinese-hubert-base",
-            "bert_base_path": "models/chinese-roberta-wwm-ext-large",
-        }
-    }
-    
-    tts_config = TTS_Config(config_dict)
-    tts_pipeline = TTS(tts_config)
-
+def gpt_sovits(text: str, out_file):
     params = {
         "text": text,
         "text_lang": "zh",
@@ -119,13 +119,15 @@ async def gpt_sovits(text: str, out_file="speech.wav"):
 @bot.tree.command(name="speak", description="讓Bot說話")
 async def speak(interaction: discord.Interaction, text: str):
     await interaction.response.send_message("音訊正在生成中，請稍候...")
+    loop = asyncio.get_event_loop()
     output = split_string_by_keywords(text, keyword_dict)
     combined = AudioSegment.empty()
     for idx, part in enumerate(output):
     # 如果為字串則使用 gpt_sovits 生成 wav
         if isinstance(part, str):
             temp_wav = f"temp_{idx}.wav"
-            await gpt_sovits(part, out_file=temp_wav)
+            await loop.run_in_executor(None, gpt_sovits,part,temp_wav)
+    
             seg_audio = AudioSegment.from_file(temp_wav, format="wav")
             combined += seg_audio
         # 如果為列表則從 sounds 資料夾讀取對應的 wav
@@ -161,8 +163,3 @@ async def download(interaction: discord.Interaction):
 
 if __name__ == "__main__":
     bot.run(token)
-
-
-
-
-
