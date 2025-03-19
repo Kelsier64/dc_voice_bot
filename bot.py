@@ -138,10 +138,10 @@ async def speak(interaction: discord.Interaction, text: str):
     output = split_string_by_keywords(text, keyword_dict)
     combined = AudioSegment.empty()
     for idx, part in enumerate(output):
-    # 如果為字串則使用 gpt_sovits 生成 wav
+        # 如果為字串則使用 gpt_sovits 生成 wav
         if isinstance(part, str):
-            temp_wav = f"temp_{idx}.wav"
-            await loop.run_in_executor(None, gpt_sovits,part,temp_wav)
+            temp_wav = os.path.join("temp_sounds", f"temp_{idx}.wav")
+            await loop.run_in_executor(None, gpt_sovits, part, temp_wav)
     
             seg_audio = AudioSegment.from_file(temp_wav, format="wav")
             combined += seg_audio
