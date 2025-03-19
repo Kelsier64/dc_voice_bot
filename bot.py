@@ -15,7 +15,7 @@ load_dotenv()
 token = os.getenv("DISCORD_BOT_TOKEN")
 
 if token is None:
-    raise ValueError("DISCORD_BOT_TOKEN1 環境變數未設置")
+    raise ValueError("DISCORD_BOT_TOKEN 環境變數未設置")
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -25,9 +25,23 @@ keyword_dict = {
     "啊哈哈哈":["ahhaha"],
     "燒死你呀":["burn"],
     "躺贏狗":["dog"],
-    "就解決你呀":["solve"],
+    "就解決你呀":["slove"],
     "嗚呼哈哈":["uhu"],
     "伊嗯嗯啊":["enn"],
+    "啊嗨嗨":["ahihi"],
+    "回答我":["answer"],
+    "啊能能":["cancan"],
+    "作業寫完了沒有":["homework"],
+    "如此生活三十年":["living"],
+    "look at my eyes":["look"],
+    "啊嚕嚕嚕":["lulu"],
+    "媽媽的味道":["mom"],
+    "媽媽媽媽":["mommy"],
+    "痛太痛啦":["pain"],
+    " 說話":["speak"],
+    "陽光青提":["sun"],
+    "我們都在用力的活著":["working"],
+    "豪赤":["yummy"],
 }
 
 config_dict = {
@@ -119,6 +133,7 @@ def gpt_sovits(text: str, out_file):
 @bot.tree.command(name="speak", description="讓Bot說話")
 async def speak(interaction: discord.Interaction, text: str):
     await interaction.response.send_message("音訊正在生成中，請稍候...")
+    await interaction.followup.send(text)
     loop = asyncio.get_event_loop()
     output = split_string_by_keywords(text, keyword_dict)
     combined = AudioSegment.empty()
@@ -138,10 +153,6 @@ async def speak(interaction: discord.Interaction, text: str):
             combined += seg_audio
 
     combined.export("final.wav", format="wav")
-
-    await interaction.followup.send("生成完成")
-
-
     
     if not bot.voice_clients:
         await interaction.followup.send(file=discord.File("final.wav"))
@@ -160,6 +171,11 @@ async def download(interaction: discord.Interaction):
         return
 
     await interaction.response.send_message(file=discord.File("final.wav"))
+
+@bot.tree.command(name="list_keywords", description="列出所有關鍵字")
+async def list_keywords(interaction: discord.Interaction):
+    keywords = "\n".join(keyword_dict.keys())
+    await interaction.response.send_message(f"關鍵字列表:\n{keywords}")
 
 if __name__ == "__main__":
     bot.run(token)
