@@ -28,7 +28,7 @@ keyword_dict = {
     "就解決你呀":["slove"],
     "嗚呼哈哈":["uhu"],
     "伊嗯嗯啊":["enn"],
-    "啊嗨嗨":["ahihi"],
+    "啊嗨嗨":["ahhihi"],
     "回答我":["answer"],
     "啊能能":["cancan"],
     "作業寫完了沒有":["homework"],
@@ -37,11 +37,11 @@ keyword_dict = {
     "啊嚕嚕嚕":["lulu"],
     "媽媽的味道":["mom"],
     "媽媽媽媽":["mommy"],
-    "痛太痛啦":["pain"],
+    "哎呀痛太痛啦":["pain"],
     " 說話":["speak"],
     "陽光青提":["sun"],
     "我們都在用力的活著":["working"],
-    "豪赤":["yummy"],
+    "嗯啊好吃":["yummy"],
 }
 
 config_dict = {
@@ -177,5 +177,22 @@ async def list_keywords(interaction: discord.Interaction):
     keywords = "\n".join(keyword_dict.keys())
     await interaction.response.send_message(f"關鍵字列表:\n{keywords}")
 
+@bot.tree.command(name="speak_again", description="再次播放最後生成的音訊")
+async def speak_again(interaction: discord.Interaction):
+    if not os.path.exists("final.wav"):
+        await interaction.response.send_message("音訊文件不存在")
+        return
+
+    if not bot.voice_clients:
+        await interaction.response.send_message("Bot 不在任何語音頻道中")
+        return
+
+    vc = bot.voice_clients[0]
+    while vc.is_playing():
+        await asyncio.sleep(0.1)
+
+    vc.play(discord.FFmpegPCMAudio("final.wav"), after=lambda e: print(f"播放完成: {e}"))
+    await interaction.response.send_message("正在播放音訊")
+  
 if __name__ == "__main__":
     bot.run(token)
